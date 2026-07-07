@@ -5,7 +5,7 @@
 *.db
 *.sqlite
 *.sqlite3
-data/flights.db
+data/
 
 # Virtual Environments
 .venv/

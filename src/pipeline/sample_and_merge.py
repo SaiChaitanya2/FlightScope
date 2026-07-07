@@ -2,33 +2,13 @@ import os
 import glob
 import pandas as pd
 import numpy as np
-
-# 66 columns to keep
-columns_to_keep = [
-    'Month', 'DayofMonth', 'DayOfWeek', 'FlightDate', 'Marketing_Airline_Network',
-    'Operated_or_Branded_Code_Share_Partners', 'DOT_ID_Marketing_Airline',
-    'IATA_Code_Marketing_Airline', 'Flight_Number_Marketing_Airline',
-    'Operating_Airline ', 'DOT_ID_Operating_Airline',
-    'IATA_Code_Operating_Airline', 'Tail_Number',
-    'Flight_Number_Operating_Airline', 'OriginAirportID', 'OriginAirportSeqID',
-    'OriginCityMarketID', 'Origin', 'OriginCityName', 'OriginState',
-    'OriginStateFips', 'OriginStateName', 'OriginWac', 'DestAirportID',
-    'DestAirportSeqID', 'DestCityMarketID', 'Dest', 'DestCityName', 'DestState',
-    'DestStateFips', 'DestStateName', 'DestWac', 'CRSDepTime', 'DepTime',
-    'DepDelay', 'DepDelayMinutes', 'DepDel15', 'DepartureDelayGroups',
-    'DepTimeBlk', 'TaxiOut', 'WheelsOff', 'WheelsOn', 'TaxiIn', 'CRSArrTime',
-    'ArrTime', 'ArrDelay', 'ArrDelayMinutes', 'ArrDel15', 'ArrivalDelayGroups',
-    'ArrTimeBlk', 'Cancelled', 'CancellationCode', 'Diverted', 'CRSElapsedTime',
-    'ActualElapsedTime', 'AirTime', 'Flights', 'Distance', 'DistanceGroup',
-    'CarrierDelay', 'WeatherDelay', 'NASDelay', 'SecurityDelay',
-    'LateAircraftDelay', 'DivAirportLandings', 'Duplicate'
-]
+from src.pipeline.config import RAW_DIR, PROCESSED_DIR, COLUMNS_TO_KEEP
 
 def clean_and_sample(filepath, target_samples=150000):
     print(f"Processing and cleaning {filepath}...")
     
     # 1. Drop completely (or almost) missing columns (accomplished via usecols)
-    df = pd.read_csv(filepath, usecols=lambda c: c in columns_to_keep, low_memory=False)
+    df = pd.read_csv(filepath, usecols=lambda c: c in COLUMNS_TO_KEEP, low_memory=False)
     
     # Drop exact duplicates
     df.drop_duplicates(inplace=True)
@@ -96,10 +76,21 @@ def clean_and_sample(filepath, target_samples=150000):
     sampled_df.drop('IsDelayedOrCancelled', axis=1, inplace=True)
     return sampled_df
 
-if __name__ == "__main__":
-    csv_files = sorted(glob.glob("Flights_2022_*.csv"), key=lambda x: int(os.path.basename(x).split('_')[-1].split('.')[0]))
+def run_sampling_and_merging():
+    pattern = os.path.join(RAW_DIR, "Flights_2022_*.csv")
+    csv_files = sorted(glob.glob(pattern), key=lambda x: int(os.path.basename(x).split('_')[-1].split('.')[0]))
+    
+    if not csv_files:
+        print(f"No monthly CSV files found in {RAW_DIR}. Skipping sampling.")
+        # If the parquet already exists, we will reuse it.
+        expected_pq = os.path.join(PROCESSED_DIR, "Flights_2022_sampled_1.8M.parquet")
+        if os.path.exists(expected_pq):
+            print(f"Found existing sampled Parquet file: {expected_pq}. Reusing it.")
+            return expected_pq
+        else:
+            raise FileNotFoundError(f"No CSVs in {RAW_DIR} and no sampled Parquet in {PROCESSED_DIR}.")
+            
     all_sampled = []
-
     for filepath in csv_files:
         sampled_month = clean_and_sample(filepath, target_samples=150000)
         all_sampled.append(sampled_month)
@@ -110,9 +101,8 @@ if __name__ == "__main__":
     # 4. Find and remove Outliers (After Merging)
     print("Finding and handling outliers...")
     
-    # A. Physical impossibilities (e.g. AirTime <= 0 for non-cancelled/non-diverted flights)
+    # A. Physical impossibilities (e.g. AirTime <= 0 for active flights)
     active_flights = (final_df['Cancelled'] == False) & (final_df['Diverted'] == False)
-    
     invalid_rows = active_flights & (
         (final_df['AirTime'] <= 0) | 
         (final_df['TaxiOut'] <= 0) | 
@@ -123,20 +113,16 @@ if __name__ == "__main__":
     final_df = final_df[~invalid_rows]
     
     # B. Speed validation (Average flight speed must be reasonable for commercial jets)
-    # Speed = Distance / (AirTime / 60)
-    # Normal jet speeds are 400-600 mph. We filter out errors where speed > 750 mph or speed < 60 mph for long distances (>100 miles)
     active_flights = (final_df['Cancelled'] == False) & (final_df['Diverted'] == False)
     speed_mph = final_df['Distance'] / (final_df['AirTime'] / 60.0)
     impossible_speed = active_flights & (final_df['Distance'] > 100) & ((speed_mph > 750) | (speed_mph < 60))
     print(f"Removing {impossible_speed.sum()} rows with impossible flight speeds (>750 mph or <60 mph)...")
     final_df = final_df[~impossible_speed]
     
-    # C. Statistical Outliers (Z-score > 5 for operational durations like TaxiOut and TaxiIn)
-    # We use Z-score > 5 to catch extreme logging errors (e.g. taxi times of 10+ hours) while preserving real severe delays.
+    # C. Statistical Outliers (Z-score > 5 for taxi times)
     for col in ['TaxiOut', 'TaxiIn', 'ActualElapsedTime']:
         col_mean = final_df[col].mean()
         col_std = final_df[col].std()
-        # Find Z-score
         z_scores = (final_df[col] - col_mean) / col_std
         outliers = active_flights & (z_scores.abs() > 5)
         print(f"Removing {outliers.sum()} statistical outliers (Z-score > 5) from column '{col}'...")
@@ -153,15 +139,18 @@ if __name__ == "__main__":
         if col in final_df.columns:
             final_df[col] = final_df[col].astype('category')
 
-    print(f"Final cleaned & merged dataset shape: {final_df.shape}")
-
-    # Save outputs
-    csv_out = "Flights_2022_sampled_1.8M.csv"
-    pq_out = "Flights_2022_sampled_1.8M.parquet"
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+    
+    csv_out = os.path.join(PROCESSED_DIR, "Flights_2022_sampled_1.8M.csv")
+    pq_out = os.path.join(PROCESSED_DIR, "Flights_2022_sampled_1.8M.parquet")
     
     print(f"Saving merged data to {csv_out}...")
     final_df.to_csv(csv_out, index=False)
     
     print(f"Saving merged data to {pq_out}...")
     final_df.to_parquet(pq_out, compression='snappy')
-    print("All tasks completed successfully!")
+    print("Sampling and merging completed successfully!")
+    return pq_out
+
+if __name__ == "__main__":
+    run_sampling_and_merging()

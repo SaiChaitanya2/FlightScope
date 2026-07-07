@@ -1,23 +1,22 @@
 import os
 import duckdb
+from src.pipeline.config import PROCESSED_DIR, DB_PATH
 
-def setup_database():
-    parquet_path = "data/processed_flights.parquet"
-    db_path = "data/flights.db"
-    
+def build_duckdb_database(parquet_path=None):
+    if parquet_path is None:
+        parquet_path = os.path.join(PROCESSED_DIR, "processed_flights.parquet")
+        
     if not os.path.exists(parquet_path):
         raise FileNotFoundError(f"Processed parquet file not found at {parquet_path}. Please run feature engineering first.")
         
-    print(f"Initializing DuckDB database at {db_path}...")
+    print(f"Initializing DuckDB database at {DB_PATH}...")
     
-    # Connect to DuckDB (creates the file if it doesn't exist)
-    conn = duckdb.connect(db_path)
+    # Establish connection
+    conn = duckdb.connect(DB_PATH)
     
-    # Load parquet data into a table
-    print("Loading data from parquet into 'flights' table...")
+    print("Loading data into 'flights' table...")
     conn.execute(f"CREATE OR REPLACE TABLE flights AS SELECT * FROM read_parquet('{parquet_path}')")
     
-    # Create indexes for fast filtering in the dashboard
     print("Creating indexes on search fields...")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_origin ON flights(Origin)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_dest ON flights(Dest)")
@@ -25,19 +24,12 @@ def setup_database():
     conn.execute("CREATE INDEX IF NOT EXISTS idx_month ON flights(Month)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_date ON flights(FlightDate)")
     
-    # Verify the table size
     row_count = conn.execute("SELECT COUNT(*) FROM flights").fetchone()[0]
-    print(f"Successfully created 'flights' table with {row_count} rows!")
-    
-    # Check structure
-    print("Database schema preview:")
-    cols = conn.execute("PRAGMA table_info(flights)").fetchall()
-    for col in cols[:10]:
-        print(f" - {col[1]}: {col[2]}")
-    print(f" ... and {len(cols) - 10} more columns.")
+    print(f"Successfully loaded table 'flights' with {row_count} rows!")
     
     conn.close()
     print("Database setup complete.")
+    return DB_PATH
 
 if __name__ == "__main__":
-    setup_database()
+    build_duckdb_database()

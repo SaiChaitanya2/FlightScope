@@ -3,20 +3,11 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from src.pipeline.config import PROCESSED_DIR
 
-def run_feature_engineering():
-    input_path = "Flights_2022_sampled_1.8M.parquet"
-    output_parquet = "data/processed_flights.parquet"
-    
-    if not os.path.exists(input_path):
-        raise FileNotFoundError(f"Source file {input_path} not found in current directory.")
-        
-    print(f"Loading {input_path}...")
-    df = pd.read_parquet(input_path)
-    
-    # 1. Clean column names (strip trailing spaces)
-    df.columns = df.columns.str.strip()
+def build_features(df):
     print("Columns sanitized.")
+    df.columns = df.columns.str.strip()
     
     # 2. Time and Date Features
     print("Engineering time-based features...")
@@ -60,26 +51,22 @@ def run_feature_engineering():
         '2022-12-23', '2022-12-24', '2022-12-25', '2022-12-26', '2022-12-27',  # Christmas window
         '2022-12-31'   # New Year's Eve
     }
-    # Check membership
     df['Is_Holiday'] = df['FlightDate'].dt.strftime('%Y-%m-%d').isin(holidays_2022).astype(int)
     
     # 4. Hourly Airport Congestion Scores
     print("Engineering congestion metrics...")
-    # Count departures per (Origin, Date, Hour)
     dep_counts = df.groupby(['Origin', 'FlightDate', 'DepHour']).size().reset_index(name='Origin_Dep_Congestion')
     df = pd.merge(df, dep_counts, on=['Origin', 'FlightDate', 'DepHour'], how='left')
     
-    # Count arrivals per (Dest, Date, Hour)
     df['ArrHour'] = df['CRSArrTime'] // 100
     arr_counts = df.groupby(['Dest', 'FlightDate', 'ArrHour']).size().reset_index(name='Dest_Arr_Congestion')
     df = pd.merge(df, arr_counts, on=['Dest', 'FlightDate', 'ArrHour'], how='left')
     
-    # Fill any NaNs with 0
     df['Origin_Dep_Congestion'] = df['Origin_Dep_Congestion'].fillna(0).astype(int)
     df['Dest_Arr_Congestion'] = df['Dest_Arr_Congestion'].fillna(0).astype(int)
     df.drop('ArrHour', axis=1, inplace=True)
     
-    # 5. Historical Delay Risks (Avoiding data leakage by calculating overall statistics)
+    # 5. Historical Delay Risks
     print("Engineering historical delay risks...")
     df['Is_Delayed'] = (df['ArrDelay'] > 15).astype(int)
     
@@ -91,12 +78,10 @@ def run_feature_engineering():
     df['Origin_Airport_Risk'] = df['Origin'].map(origin_delay_prob)
     df['Dest_Airport_Risk'] = df['Dest'].map(dest_delay_prob)
     
-    # Fill potential missing values with the global mean
     global_mean_delay = df['Is_Delayed'].mean()
     df['Airline_Delay_Risk'] = df['Airline_Delay_Risk'].fillna(global_mean_delay)
     df['Origin_Airport_Risk'] = df['Origin_Airport_Risk'].fillna(global_mean_delay)
     df['Dest_Airport_Risk'] = df['Dest_Airport_Risk'].fillna(global_mean_delay)
-    
     df.drop('Is_Delayed', axis=1, inplace=True)
     
     # 6. Operational metrics
@@ -114,30 +99,32 @@ def run_feature_engineering():
         'Ground_Time_Ratio', 'Time_Made_Up', 'Origin_Dep_Congestion', 'Dest_Arr_Congestion'
     ]
     
-    # Extract only numeric PCA columns, filling any missing values with 0
     X_pca = df[pca_features].fillna(0).values
-    
-    # Scale data
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_pca)
     
-    # Run 2D PCA
     pca = PCA(n_components=2, random_state=42)
     components = pca.fit_transform(X_scaled)
-    
     df['PCA_1'] = components[:, 0]
     df['PCA_2'] = components[:, 1]
     
     print(f"PCA completed. Variance explained: {round(pca.explained_variance_ratio_.sum() * 100, 2)}%")
+    return df
+
+def run_features_generation(input_pq=None):
+    if input_pq is None:
+        input_pq = os.path.join(PROCESSED_DIR, "Flights_2022_sampled_1.8M.parquet")
+        
+    output_pq = os.path.join(PROCESSED_DIR, "processed_flights.parquet")
+    print(f"Loading from {input_pq}...")
+    df = pd.read_parquet(input_pq)
     
-    # Ensure data directory exists
-    os.makedirs("data", exist_ok=True)
+    processed_df = build_features(df)
     
-    # 8. Save output (all columns)
-    print(f"Saving final dataset to {output_parquet}...")
-    df.to_parquet(output_parquet, index=False, compression='snappy')
-    print("Feature engineering successfully completed!")
-    print(f"Processed shape: {df.shape}")
+    print(f"Saving final dataset to {output_pq}...")
+    processed_df.to_parquet(output_pq, index=False, compression='snappy')
+    print(f"Processed shape: {processed_df.shape}")
+    return output_pq
 
 if __name__ == "__main__":
-    run_feature_engineering()
+    run_features_generation()
