@@ -10,13 +10,15 @@ import dash_bootstrap_components as dbc
 # DATA PATH
 # =====================================================
 
-FLIGHT_FILE = (
-    r"C:\Users\jiyaa\OneDrive\Desktop\CS661_data\data\processed\Flights_2022_sampled_1.8M.csv"
-)
+import os
+import sys
 
-AIRPORT_FILE = (
-    r"C:\Users\jiyaa\OneDrive\Desktop\CS661_data\data\processed\airports.csv"
-)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+from src.pipeline.config import PROCESSED_DIR
+
+FLIGHT_FILE = os.path.join(PROCESSED_DIR, "Flights_2022_sampled_1.8M.csv")
+
+AIRPORT_FILE = os.path.join(PROCESSED_DIR, "airports.csv")
 
 # =====================================================
 # LOAD DATA
