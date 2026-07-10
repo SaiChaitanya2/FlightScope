@@ -121,7 +121,9 @@ ranking_fig = px.bar(
 
 
 ranking_fig.update_layout(
-    template="plotly_dark"
+    template="plotly_dark",
+    margin=dict(l=20, r=20, t=30, b=20),
+    height = 200
 )
 
 
@@ -413,7 +415,7 @@ map_fig.update_layout(
 
 
 # =====================================================
-# LAYOUT (CORRECTED)
+# LAYOUT 
 # =====================================================
 
 layout = html.Div(
@@ -473,7 +475,7 @@ layout = html.Div(
                 dbc.Col(
                     dbc.Card(
                         [
-                            html.H5("Flights"),
+                            html.H5("Flights", style={"fontSize": "14px"}),
                             html.H2(id="kpi_flights")
                         ],
 
@@ -490,7 +492,7 @@ layout = html.Div(
                 dbc.Col(
                     dbc.Card(
                         [
-                            html.H5("Average Delay"),
+                            html.H5("Average Delay", style={"fontSize": "14px"}),
                             html.H2(id="kpi_delay")
                         ],
 
@@ -507,7 +509,7 @@ layout = html.Div(
                 dbc.Col(
                     dbc.Card(
                         [
-                            html.H5("On Time"),
+                            html.H5("On Time", style={"fontSize": "14px"}),
                             html.H2(id="kpi_ontime")
                         ],
 
@@ -524,7 +526,7 @@ layout = html.Div(
                 dbc.Col(
                     dbc.Card(
                         [
-                            html.H5("Cancelled"),
+                            html.H5("Cancelled", style={"fontSize": "14px"}),
                             html.H2(id="kpi_cancel")
                         ],
 
@@ -564,20 +566,125 @@ layout = html.Div(
                                     "responsive": True,
                                     "displayModeBar": False
                                 },
+                                
 
                                 style={
-                                    "height":"380px"
+                                    "height":"300px"
                                 }
                             )
 
                         )
                     ),
 
-                    width=6
+                    width=4
+
+                ),
+
+                dbc.Col(
+
+                    dbc.Card(
+
+                        dbc.CardBody(
+
+                            dcc.Graph(
+
+                                figure=monthly_fig,
+
+                                config={
+                                    "responsive":True,
+                                    "displayModeBar":False
+                                },
+
+                                style={
+                                    "height":"300px"
+                                }
+
+                            )
+
+
+                        )
+
+                    ),
+
+                    width=4
 
                 ),
 
 
+
+                dbc.Col(
+
+                    dbc.Card(
+
+                        dbc.CardBody(
+
+                            dcc.Graph(
+
+                                figure=heatmap_fig,
+
+                                config={
+                                    "responsive":True,
+                                    "displayModeBar":False
+                                },
+
+                                style={
+                                    "height":"300px"
+                                }
+
+                            )
+
+                        )
+
+                    ),
+
+                    width=4
+
+                )
+
+            ],
+
+            className="mb-4"
+
+        ),
+
+
+
+
+        # ================= MAP + PIE =================
+
+
+        dbc.Row(
+
+            [
+
+                dbc.Col(
+
+                    dbc.Card(
+
+                        dbc.CardBody(
+
+                            dcc.Graph(
+
+                                figure=map_fig,
+
+                                config={
+                                    "responsive":True,
+                                    "displayModeBar":False
+                                },
+
+                                style={
+                                    "height":"300px"
+                                }
+
+                            )
+
+                        )
+
+                    ),
+
+                    width=8
+
+                ),
 
                 dbc.Col(
 
@@ -593,22 +700,25 @@ layout = html.Div(
                                 },
 
                                 style={
-                                    "height":"380px"
+                                    "height":"300px"
                                 }
                             )
 
                         )
                     ),
 
-                    width=6
+                    width=4
 
-                )
+                ),
 
             ],
 
             className="mb-4"
 
         ),
+
+
+
 
 
 
@@ -636,7 +746,7 @@ layout = html.Div(
                                 },
 
                                 style={
-                                    "height":"420px"
+                                    "height":"250px"
                                 }
 
                             )
@@ -649,126 +759,7 @@ layout = html.Div(
 
                 )
 
-            ],
 
-            className="mb-4"
-
-        ),
-
-
-
-
-        # ================= MONTHLY + HEATMAP =================
-
-
-        dbc.Row(
-
-            [
-
-                dbc.Col(
-
-                    dbc.Card(
-
-                        dbc.CardBody(
-
-                            dcc.Graph(
-
-                                figure=monthly_fig,
-
-                                config={
-                                    "responsive":True,
-                                    "displayModeBar":False
-                                },
-
-                                style={
-                                    "height":"380px"
-                                }
-
-                            )
-
-                        )
-
-                    ),
-
-                    width=6
-
-                ),
-
-
-
-                dbc.Col(
-
-                    dbc.Card(
-
-                        dbc.CardBody(
-
-                            dcc.Graph(
-
-                                figure=heatmap_fig,
-
-                                config={
-                                    "responsive":True,
-                                    "displayModeBar":False
-                                },
-
-                                style={
-                                    "height":"380px"
-                                }
-
-                            )
-
-                        )
-
-                    ),
-
-                    width=6
-
-                )
-
-            ],
-
-            className="mb-4"
-
-        ),
-
-
-
-
-        # ================= MAP =================
-
-
-        dbc.Row(
-
-            [
-
-                dbc.Col(
-
-                    dbc.Card(
-
-                        dbc.CardBody(
-
-                            dcc.Graph(
-
-                                figure=map_fig,
-
-                                config={
-                                    "responsive":True,
-                                    "displayModeBar":False
-                                },
-
-                                style={
-                                    "height":"450px"
-                                }
-
-                            )
-
-                        )
-
-                    ),
-
-                    width=12
-
-                )
 
             ]
 
