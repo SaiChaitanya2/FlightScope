@@ -838,21 +838,25 @@ def register_callbacks(app):
 
         ],
 
+        [
 
-        Input(
-            "airline_dropdown",
-            "value"
-        )
+            Input("airline_dropdown","value"),
+            Input("global-selected-airport-store", "data"),
+        ]
 
     )
 
 
-    def update_cards(selected):
+    def update_cards(selected , selected_airport):
 
 
         temp=df[
             df["Airline"]==selected
         ]
+
+        g_airport = selected_airport.get('airport') if isinstance(selected_airport, dict) else None
+        if g_airport and "Origin" in temp.columns:
+            temp = temp[temp["Origin"] == g_airport]
 
 
         flights=len(temp)
@@ -866,8 +870,6 @@ def register_callbacks(app):
             2
 
         )
-
-
         ontime=round(
 
             (
@@ -880,18 +882,13 @@ def register_callbacks(app):
             2
 
         )
-
-
         cancel=round(
 
             temp["Cancelled"]
             .mean()*100,
 
             2
-
         )
-
-
         return (
 
             f"{flights:,}",

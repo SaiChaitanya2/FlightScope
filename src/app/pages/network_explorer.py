@@ -148,10 +148,9 @@ def register_callbacks(app_ignored):
 
 # ── Callback: click → selected airport store ───────────────
 @callback(
-    Output("network-selected-airport-store", "data"),
+    Output("global-selected-airport-store", "data"),
     Input("network-map-graph", "clickData"),
-    State("network-selected-airport-store", "data"),
-)
+    State("global-selected-airport-store", "data"),
 def update_selected_airport(clickData, current_selected):
     if clickData:
         try:
@@ -180,7 +179,7 @@ def update_selected_airport(clickData, current_selected):
         Input("network-airline-dropdown", "value"),
         Input("network-season-dropdown", "value"),
         Input("network-topn-slider", "value"),
-        Input("network-selected-airport-store", "data"),
+        Input("global-selected-airport-store", "data"),
         Input("global-route-store", "data"),
     ],
 )

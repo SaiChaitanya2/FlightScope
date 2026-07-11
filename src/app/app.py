@@ -31,7 +31,9 @@ app.title = "FlightScope: US Flight Operations & Delay Analytics"
 # Main Layout
 app.layout = html.Div([
     dcc.Location(id="url", refresh=False),
+    dcc.Store(id='global-selected-airport-store', storage_type='session', data={'airport': None}),
     
+
     # Navigation Bar
     dbc.NavbarSimple(
         children=[

@@ -294,25 +294,25 @@ def reset_selected_airport(n_clicks):
     
 # Set selected airport on map click
 @callback(
-    Output("airport-dropdown", "value"),
+    Output("global-selected-airport-store", "data"),
     Input("delay-spatial-map", "clickData"),
-    State("airport-dropdown", "value")
+    State("global-selected-airport-store", "data")
 )
 def update_selected_airport(clickData, current_selected):
     if not clickData:
         return current_selected
-    
+        
     try:
         point = clickData["points"][0]
-        faa = point.get("customdata", None)
+        faa = point.get("customdata")
+        if isinstance(faa, list):
+            faa = faa[0]
         if faa:
-            # If custom_data is passed, it returns a list like [faa]
-            if isinstance(faa, list):
-                return faa[0]
-            return faa
+            return {'airport': faa}
     except Exception:
         pass
     return current_selected
+
 
 # Main dashboard update callback
 @callback(
@@ -330,7 +330,7 @@ def update_selected_airport(clickData, current_selected):
         Input("metric-dropdown", "value"),
         Input("airline-dropdown", "value"),
         Input("season-dropdown", "value"),
-        Input("airport-dropdown", "value"),
+        Input("global-selected-airport-store", "data"),
         Input("hourly-weekly-heatmap", "clickData"),
         Input("monthly-calendar-heatmap", "clickData"),
         Input("hour-slider", "value"),
@@ -338,8 +338,10 @@ def update_selected_airport(clickData, current_selected):
 )
 def update_dashboard(metric, airline, season, selected_airport, hw_click, mc_click, hour_slider):
     ctx = dash.callback_context
+    selected_airport = selected_airport.get('airport') if isinstance(selected_airport, dict) else selected_airport
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
 
+    
     # Enforce mutual exclusion for temporal clicks by only keeping the most recently triggered one
     if triggered_id == "hourly-weekly-heatmap":
         mc_click = None
