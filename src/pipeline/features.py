@@ -105,8 +105,8 @@ def build_features(df):
     df['UMAP_2'] = np.nan
     df['UMAP_3'] = np.nan
     
-    # Grab a random subset of 300,000 flights to calculate
-    sample_idx = df.sample(n=500000, random_state=42).index
+    # Grab a random subset of 100,000 flights to calculate
+    sample_idx = df.sample(n=100000, random_state=42).index
     
     # Prepare only the subset for math
     X_umap = df.loc[sample_idx, umap_features].fillna(0).values
@@ -127,7 +127,7 @@ def build_features(df):
 
 def run_features_generation(input_pq=None):
     if input_pq is None:
-        input_pq = os.path.join(PROCESSED_DIR, "Flights_2022_sampled_1.8M.parquet")
+        input_pq = os.path.join(PROCESSED_DIR, "Flights_2022_full_7M.parquet")
         
     output_pq = os.path.join(PROCESSED_DIR, "processed_flights.parquet")
     print(f"Loading from {input_pq}...")
