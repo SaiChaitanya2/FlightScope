@@ -107,7 +107,7 @@ def _build_where_clause(airport=None, airline=None, season=None, month=None, dat
     return where_clause, tuple(params)
 
 @lru_cache(maxsize=128)
-def _get_airport_delay_summary_cached(airline, season, metric, month, day_of_week, dep_hour, day_of_month):
+def _get_airport_delay_summary_cached(airline, season, metric, month, day_of_week, dep_hour, day_of_month, origin_state, dest_state, origin_airport, dest_airport):
     """Cached internal version of get_airport_delay_summary"""
     """
     Returns a summary of flights grouped by Origin airport.
@@ -115,7 +115,10 @@ def _get_airport_delay_summary_cached(airline, season, metric, month, day_of_wee
     """
     conn = get_db_connection()
     try:
-        where_clause, params = _build_where_clause(airline=airline, season=season, month=month, day_of_week=day_of_week, dep_hour=dep_hour, day_of_month=day_of_month)
+        where_clause, params = _build_where_clause(
+            airline=airline, season=season, month=month, day_of_week=day_of_week, dep_hour=dep_hour, day_of_month=day_of_month,
+            origin_state=origin_state, dest_state=dest_state, origin_airport=origin_airport, dest_airport=dest_airport
+        )
         
         # Determine the database metric to aggregate
         db_metric = metric
@@ -153,12 +156,12 @@ def _get_airport_delay_summary_cached(airline, season, metric, month, day_of_wee
     finally:
         conn.close()
 
-def get_airport_delay_summary(airline=None, season=None, metric='DepDelay', month=None, day_of_week=None, dep_hour=None, day_of_month=None):
-    df = _get_airport_delay_summary_cached(airline, season, metric, month, day_of_week, dep_hour, day_of_month)
+def get_airport_delay_summary(airline=None, season=None, metric='DepDelay', month=None, day_of_week=None, dep_hour=None, day_of_month=None, origin_state=None, dest_state=None, origin_airport=None, dest_airport=None):
+    df = _get_airport_delay_summary_cached(airline, season, metric, month, day_of_week, dep_hour, day_of_month, origin_state, dest_state, origin_airport, dest_airport)
     return df.copy()
 
 @lru_cache(maxsize=128)
-def _get_temporal_delay_data_cached(airport, airline, season, metric):
+def _get_temporal_delay_data_cached(airport, airline, season, metric, origin_state, dest_state, origin_airport, dest_airport):
     """
     Returns aggregated metrics for:
     1. DayOfWeek vs DepHour (Hourly grid)
@@ -166,7 +169,11 @@ def _get_temporal_delay_data_cached(airport, airline, season, metric):
     """
     conn = get_db_connection()
     try:
-        where_clause, params = _build_where_clause(airport=airport, airline=airline, season=season)
+        where_clause, params = _build_where_clause(
+            airport=airport, airline=airline, season=season,
+            origin_state=origin_state, dest_state=dest_state,
+            origin_airport=origin_airport, dest_airport=dest_airport
+        )
         
         db_metric = metric
         if metric not in ['DepDelay', 'ArrDelay', 'TaxiOut', 'TaxiIn', 'Cancelled']:
@@ -226,8 +233,8 @@ def _get_temporal_delay_data_cached(airport, airline, season, metric):
     finally:
         conn.close()
 
-def get_temporal_delay_data(airport=None, airline=None, season=None, metric='DepDelay'):
-    h, m = _get_temporal_delay_data_cached(airport, airline, season, metric)
+def get_temporal_delay_data(airport=None, airline=None, season=None, metric='DepDelay', origin_state=None, dest_state=None, origin_airport=None, dest_airport=None):
+    h, m = _get_temporal_delay_data_cached(airport, airline, season, metric, origin_state, dest_state, origin_airport, dest_airport)
     return h.copy(), m.copy()
 
 @lru_cache(maxsize=128)

@@ -390,7 +390,8 @@ def update_dashboard(metric, airline, season, selected_airport, hw_click, mc_cli
     # 2. Fetch Map Data
     df_map = get_airport_delay_summary(
         airline=airline, season=season, metric=metric,
-        month=month, day_of_week=day_of_week, dep_hour=dep_hour, day_of_month=day_of_month
+        month=month, day_of_week=day_of_week, dep_hour=dep_hour, day_of_month=day_of_month,
+        origin_state=o_state, dest_state=d_state, origin_airport=o_airport, dest_airport=d_airport
     )
     
     # Scaling marker sizes based on flight count
@@ -488,7 +489,8 @@ def update_dashboard(metric, airline, season, selected_airport, hw_click, mc_cli
         airport=selected_airport, 
         airline=airline, 
         season=season, 
-        metric=metric
+        metric=metric,
+        origin_state=o_state, dest_state=d_state, origin_airport=o_airport, dest_airport=d_airport
     )
     
     # Build Hourly/Weekly Heatmap Figure

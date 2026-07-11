@@ -51,17 +51,9 @@
 }
 
 .header-dropdown .Select-arrow {
-    border-color: rgba(255, 255, 255, 0.8) transparent transparent !important;
-}
-
-.header-dropdown .Select-clear {
-    color: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.6) transparent transparent !important;
 }
 
 .header-dropdown .Select-clear-zone {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.header-dropdown svg {
-    fill: rgba(255, 255, 255, 0.8) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
 }
