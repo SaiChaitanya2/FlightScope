@@ -49,24 +49,24 @@ def create_layout():
         ], className="mb-3 mt-1"),
         
         # NEW: KPI Cards Row
+        # NEW: Compact KPI Bar
         dbc.Row([
-            dbc.Col(dbc.Card([dbc.CardBody([
-                html.H6("Flights in View", className="text-muted mb-1"),
-                html.H3(id="hd-kpi-flights", className="text-primary mb-0")
-            ])], className="shadow-sm border-0", style={"backgroundColor": "#151722"}), width=3),
-            dbc.Col(dbc.Card([dbc.CardBody([
-                html.H6("Avg Arrival Delay", className="text-muted mb-1"),
-                html.H3(id="hd-kpi-arr-delay", className="text-warning mb-0")
-            ])], className="shadow-sm border-0", style={"backgroundColor": "#151722"}), width=3),
-            dbc.Col(dbc.Card([dbc.CardBody([
-                html.H6("Avg Taxi-Out", className="text-muted mb-1"),
-                html.H3(id="hd-kpi-taxi-out", className="text-info mb-0")
-            ])], className="shadow-sm border-0", style={"backgroundColor": "#151722"}), width=3),
-            dbc.Col(dbc.Card([dbc.CardBody([
-                html.H6("Max Delay in Cluster", className="text-muted mb-1"),
-                html.H3(id="hd-kpi-max-delay", className="text-danger mb-0")
-            ])], className="shadow-sm border-0", style={"backgroundColor": "#151722"}), width=3),
-        ], className="mb-4"),
+            dbc.Col(
+                html.Div([
+                    html.Span("Flights in View:  ", className="text-muted ms-3"),
+                    html.Span(id="hd-kpi-flights", className="text-primary fw-bold me-4 fs-5"),
+                    
+                    html.Span("Avg Arrival Delay:  ", className="text-muted"),
+                    html.Span(id="hd-kpi-arr-delay", className="text-warning fw-bold me-4 fs-5"),
+                    
+                    html.Span("Avg Taxi-Out:  ", className="text-muted"),
+                    html.Span(id="hd-kpi-taxi-out", className="text-info fw-bold me-4 fs-5"),
+                    
+                    html.Span("Max Delay in Cluster:  ", className="text-muted"),
+                    html.Span(id="hd-kpi-max-delay", className="text-danger fw-bold fs-5")
+                ], className="d-flex align-items-center py-2 mb-4 shadow-sm rounded", style={"backgroundColor": "#151722"}), 
+            width=12)
+        ]),
         
         dbc.Row([
             # LEFT COLUMN: Vertical Slider
@@ -114,7 +114,7 @@ def create_layout():
                                 style={"width": "200px", "color": "#111111"}
                             )
                         ], className="d-flex justify-content-between align-items-center mb-3"),
-                        dcc.Graph(id="umap-scatter-plot", style={"height": "55vh"})
+                        dcc.Graph(id="umap-scatter-plot", style={"height": "65vh"})
                     ])
                 ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
             ], width=5),
@@ -124,7 +124,7 @@ def create_layout():
                 dbc.Card([
                     dbc.CardBody([
                         html.H5("Multivariate Delay Flow", className="mb-3", style={"color": "#ffffff"}),
-                        dcc.Graph(id="parallel-coords-plot", style={"height": "55vh"})
+                        dcc.Graph(id="parallel-coords-plot", style={"height": "65vh"})
                     ])
                 ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
             ], width=5)
@@ -134,7 +134,6 @@ def create_layout():
     ], fluid=True, id="aditi-view-container", style={"backgroundColor": "#0c0d12", "minHeight": "100vh", "padding": "20px"})
 
 layout = create_layout()
-
 @callback(
     [
         Output("umap-scatter-plot", "figure"),
@@ -159,7 +158,6 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         origin_airport = route_data.get("origin_airport", "")
         dest_airport = route_data.get("dest_airport", "")
         
-        # We use .copy() so that modifying sizes/colors doesn't permanently modify the cached dataframe
         df = get_umap_data(selected_month, origin_state, dest_state, origin_airport, dest_airport).copy()
         
         if df.empty:
@@ -167,23 +165,23 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             empty_fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#e2e8f0"))
             return empty_fig, empty_fig, "0", "0m", "0m", "0m"
 
-        # Compute KPIs
         kpi_flights = f"{len(df):,}"
         kpi_arr_delay = f"{df['ArrDelay'].mean():.1f}m"
         kpi_taxi = f"{df['TaxiOut'].mean():.1f}m"
         kpi_max = f"{df['ArrDelay'].max():.0f}m"
 
-        # Cross-Filtering logic
         selected_flight_id = None
         if clickData and "points" in clickData and len(clickData["points"]) > 0:
             point = clickData["points"][0]
             if "customdata" in point:
                 selected_flight_id = point["customdata"][0]
 
-        # Map sizes directly in the dataframe to avoid multi-trace order bugs
         df['marker_size'] = 4
         if selected_flight_id is not None:
             df.loc[df['flight_id'] == selected_flight_id, 'marker_size'] = 15
+
+        # Cap the congestion scale to saturate the colors
+        custom_range = [0, 25] if color_by == "Origin_Dep_Congestion" else None
 
         # 1. Update UMAP Figure
         umap_fig = px.scatter_3d(
@@ -193,48 +191,66 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             size_max=15,
             hover_data=['Operating_Airline', 'ArrDelay'],
             custom_data=['flight_id'], 
-            color_continuous_scale="YlOrRd",
+            color_continuous_scale="Plasma",
+            range_color=custom_range,
             opacity=0.95,
             labels={'Origin_Dep_Congestion': 'Congestion'},
             template="plotly_dark"
         )
             
         umap_fig.update_layout(
-            margin=dict(l=0, r=0, t=20, b=0), 
+            margin=dict(l=0, r=0, t=30, b=40), 
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#e2e8f0"),
             scene=dict(
-                xaxis=dict(title="Dim 1", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)"),
-                yaxis=dict(title="Dim 2", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)"),
-                zaxis=dict(title="Dim 3", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)")
+                xaxis=dict(title="UMAP X", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)"),
+                yaxis=dict(title="UMAP Y", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)"),
+                zaxis=dict(title="UMAP Z", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)")
             ),
-            showlegend=(color_by != "Operating_Airline")
+            showlegend=(color_by != "Operating_Airline"),
+            coloraxis_colorbar=dict(
+                thickness=15,
+                x=0.95, 
+                outlinewidth=0
+            )
         )
         
         # 2. Update Parallel Coordinates Figure
-        # If a point was clicked, filter the Parallel Coords df to just that point
         pc_df = df
         if selected_flight_id is not None:
             pc_df = df[df['flight_id'] == selected_flight_id]
             
-        # Parallel coordinates requires numerical data for colors
         pc_color = color_by if color_by != "Operating_Airline" else "ArrDelay"
+        pc_df = pc_df.sort_values(by=pc_color, ascending=True)
         
         pc_fig = px.parallel_coordinates(
             pc_df, 
             dimensions=['Distance', 'TaxiOut', 'DepDelay', 'AirTime', 'ArrDelay'],
             color=pc_color,
-            color_continuous_scale="YlOrRd",
-            labels={'Origin_Dep_Congestion': 'Congestion'},
+            color_continuous_scale="Plasma",
+            range_color=custom_range,
+            labels={
+                'Origin_Dep_Congestion': 'Congestion',
+                'Distance': 'Dist (mi)',
+                'TaxiOut': 'Taxi (m)',
+                'DepDelay': 'Dep (m)',
+                'AirTime': 'Air (m)',
+                'ArrDelay': 'Arr (m)'
+            },
             template="plotly_dark"
         )
-        
+
         pc_fig.update_layout(
-            margin=dict(l=40, r=40, t=40, b=20), 
+            margin=dict(l=50, r=5, t=65, b=20), 
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#e2e8f0")
+            font=dict(color="#e2e8f0"),
+            coloraxis_colorbar=dict(
+                thickness=15,
+                x=1.05,
+                outlinewidth=0
+            )
         )
         
         return umap_fig, pc_fig, kpi_flights, kpi_arr_delay, kpi_taxi, kpi_max
