@@ -51,11 +51,16 @@ def create_layout():
                             dcc.Slider(
                                 id='month-slider',
                                 min=1, max=12, step=1,
-                                marks={i: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i-1] for i in range(1, 13)},
+                                # Injecting the CSS colors directly into the Python marks dictionary!
+                                marks={
+                                    i: {
+                                        'label': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i-1],
+                                        'style': {'color': '#94a3b8', 'fontSize': '14px', 'paddingLeft': '15px'}
+                                    } for i in range(1, 13)
+                                },
                                 value=1, 
                                 included=False,
-                                vertical=True, # Flips the slider vertically!
-                                className="aditi-safe-slider"
+                                vertical=True
                             ),
                             style={"height": "50vh", "paddingLeft": "40%"} # Centers it and gives it height
                         )
