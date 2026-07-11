@@ -36,8 +36,14 @@ def get_umap_data(month=None, origin_state=None, dest_state=None):
 # Build the layout with the Slider and Graph placeholders
 def create_layout():
     return dbc.Container([
-        html.H3("High-Dimensional Analytics", className="mt-4 mb-3 text-primary"),
-        html.P("Exploring complex delay topologies using UMAP and Parallel Coordinates.", className="text-muted"),
+        dbc.Row([
+            dbc.Col([
+                html.H1("High-Dimensional Analytics", 
+                         style={"color": "#ffffff", "fontWeight": "700", "fontSize": "2.2rem", "letterSpacing": "-0.025em"}, className="mb-1"),
+                html.P("Exploring complex delay topologies using UMAP and Parallel Coordinates.", 
+                        style={"color": "#64748b", "fontSize": "1rem"}, className="mb-3"),
+            ], width=12)
+        ], className="mb-3 mt-1"),
         
         # Everything goes inside a single Row to sit side-by-side
         dbc.Row([

@@ -1,8 +1,87 @@
-/* Aggressive CSS overrides for dropdowns */
-.header-dropdown .Select-placeholder { color: white !important; opacity: 0.8; }
-.header-dropdown .Select-value-label { color: white !important; }
-.header-dropdown .Select-clear-zone { color: white !important; }
-.header-dropdown .Select-clear { color: white !important; font-size: 1.5rem !important; }
-.header-dropdown .Select-arrow { border-color: white transparent transparent !important; }
-.header-dropdown svg { fill: white !important; stroke: white !important; color: white !important; }
-.header-dropdown path { fill: white !important; stroke: white !important; }
+/* Premium Glassmorphic Styling for Header Dropdowns */
+
+/* 1. Main Dropdown Control Box */
+.header-dropdown .Select-control {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Hover and Focus States for the Control Box */
+.header-dropdown.is-focused .Select-control,
+.header-dropdown .Select-control:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 2. The Popup Menu (Outer Container) */
+.header-dropdown .Select-menu-outer {
+    background-color: #0c0d12 !important; /* Dark sleek background */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6) !important;
+    margin-top: 6px !important;
+    z-index: 9999 !important;
+    padding: 4px 0 !important;
+}
+
+/* The inner menu wrapper */
+.header-dropdown .Select-menu {
+    max-height: 250px !important;
+}
+
+/* 3. Individual Menu Options */
+.header-dropdown .Select-option {
+    background-color: transparent !important;
+    color: #94a3b8 !important; /* Muted text */
+    padding: 10px 16px !important;
+    font-size: 0.9rem !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+/* Hovering over an option */
+.header-dropdown .Select-option.is-focused,
+.header-dropdown .Select-option:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+}
+
+/* Selected option */
+.header-dropdown .Select-option.is-selected {
+    background-color: rgba(56, 189, 248, 0.1) !important;
+    color: #38bdf8 !important; /* Bright blue highlight */
+    font-weight: 600 !important;
+}
+
+/* 4. Text Content (Placeholder and Selected Value) */
+.header-dropdown .Select-value-label,
+.header-dropdown .Select-placeholder,
+.header-dropdown .Select-input input {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* 5. Icons (Arrow and Clear) */
+.header-dropdown .Select-arrow {
+    border-color: #94a3b8 transparent transparent !important;
+}
+.header-dropdown .Select-arrow:hover {
+    border-color: #ffffff transparent transparent !important;
+}
+.header-dropdown .Select-clear {
+    color: #94a3b8 !important;
+    font-size: 1.2rem !important;
+}
+.header-dropdown .Select-clear:hover {
+    color: #ffffff !important;
+}
+
+/* Force override of any inline SVG colors in Dash */
+.header-dropdown svg,
+.header-dropdown path {
+    fill: currentColor !important;
+}

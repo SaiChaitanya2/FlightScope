@@ -27,8 +27,25 @@ body {
 .dark-dropdown .Select-placeholder,
 .dark-dropdown .Select-input,
 .dark-dropdown .Select-input input {
-    color: #ffffff !important;
+    color: #1a1d2b !important;
     background-color: transparent !important;
+}
+
+/* Custom styles for dcc.Slider (change purple to yellow) */
+.rc-slider-track {
+    background-color: #eab308 !important; /* Yellow */
+}
+.rc-slider-handle {
+    border: solid 2px #eab308 !important; /* Yellow */
+}
+.rc-slider-handle:hover,
+.rc-slider-handle:active,
+.rc-slider-handle:focus {
+    border-color: #ca8a04 !important; /* Darker yellow on interaction */
+    box-shadow: 0 0 5px #eab308 !important;
+}
+.rc-slider-dot-active {
+    border-color: #eab308 !important;
 }
 
 /* Dropdown Menu Options */
@@ -90,3 +107,114 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #334155;
 }
+
+/* Navigation Bar Links */
+.navbar .nav-link {
+    color: #cbd5e1 !important;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 0 5px;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+    color: #ffffff !important;
+}
+
+/* Active Tab Shadow Box */
+.navbar .nav-link.active {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.2) !important;
+    font-weight: 700;
+}
+
+/* Aggressive ID-based overrides for header dropdowns */
+#global-origin-dropdown, 
+#global-origin-dropdown *,
+#global-dest-dropdown,
+#global-dest-dropdown * {
+    color: #ffffff !important;
+}
+
+/* Ensure the placeholder text specifically is white */
+#global-origin-dropdown .Select-placeholder,
+#global-dest-dropdown .Select-placeholder,
+#global-origin-dropdown .Select-value-label,
+#global-dest-dropdown .Select-value-label {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* BRUTE FORCE ID-BASED STYLING FOR NAVBAR DROPDOWNS */
+#global-origin-dropdown .Select-control,
+#global-dest-dropdown .Select-control {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    min-height: 38px !important;
+}
+
+#global-origin-dropdown.is-focused .Select-control,
+#global-dest-dropdown.is-focused .Select-control {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) !important;
+}
+
+#global-origin-dropdown .Select-menu-outer,
+#global-dest-dropdown .Select-menu-outer {
+    background-color: #0c0d12 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6) !important;
+    margin-top: 6px !important;
+}
+
+#global-origin-dropdown .Select-option,
+#global-dest-dropdown .Select-option {
+    background-color: transparent !important;
+    color: #cbd5e1 !important;
+}
+
+#global-origin-dropdown .Select-option:hover,
+#global-dest-dropdown .Select-option:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+
+/* Force Network Explorer Dropdowns to have dark text since background is white */
+#network-airline-dropdown *,
+#network-season-dropdown * {
+    color: #000000 !important;
+}
+#network-airline-dropdown .Select-value-label,
+#network-season-dropdown .Select-value-label,
+#network-airline-dropdown .Select-placeholder,
+#network-season-dropdown .Select-placeholder {
+    color: #000000 !important;
+    opacity: 1 !important;
+}
+
+/* Force Network Explorer Slider to be yellow */
+#network-topn-slider .rc-slider-track {
+    background-color: #eab308 !important;
+}
+#network-topn-slider .rc-slider-handle {
+    border: solid 2px #eab308 !important;
+    background-color: #ffffff !important;
+}
+#network-topn-slider .rc-slider-handle:hover,
+#network-topn-slider .rc-slider-handle:active,
+#network-topn-slider .rc-slider-handle:focus {
+    border-color: #ca8a04 !important;
+    box-shadow: 0 0 5px #eab308 !important;
+}
+#network-topn-slider .rc-slider-dot-active {
+    border-color: #eab308 !important;
+}

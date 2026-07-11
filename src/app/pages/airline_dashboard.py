@@ -300,14 +300,14 @@ layout = html.Div(
 
     children=[
 
-        html.H1(
-            "✈ Airline Performance Dashboard",
-            style={
-                "textAlign": "center",
-                "color": "white",
-                "marginBottom": "30px"
-            }
-        ),
+        dbc.Row([
+            dbc.Col([
+                html.H1("Airline Performance Dashboard", 
+                         style={"color": "#ffffff", "fontWeight": "700", "fontSize": "2.2rem", "letterSpacing": "-0.025em"}, className="mb-1"),
+                html.P("Compare operational efficiency, delay statistics, and cancellation rates across major US carriers.", 
+                        style={"color": "#64748b", "fontSize": "1rem"}, className="mb-3"),
+            ], width=12)
+        ], className="mb-3 mt-1"),
 
 
  # ================= DROPDOWN =================

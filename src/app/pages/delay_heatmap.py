@@ -105,8 +105,10 @@ def get_layout():
         # Header Row
         dbc.Row([
             dbc.Col([
-                html.H1("Airport Delay Heatmap & Spatial Analytics", style=STYLES["main_title"], className="mb-1"),
-                html.P("Explore geographic delay distribution and temporal congestion patterns across U.S. domestic flights.", style=STYLES["subtitle"]),
+                html.H1("Airport Delay Heatmap & Spatial Analytics", 
+                         style={"color": "#ffffff", "fontWeight": "700", "fontSize": "2.2rem", "letterSpacing": "-0.025em"}, className="mb-1"),
+                html.P("Explore geographic delay distribution and temporal congestion patterns across U.S. domestic flights.", 
+                        style={"color": "#64748b", "fontSize": "1rem"}, className="mb-3"),
             ], width=12)
         ], className="mb-3 mt-1"),
         

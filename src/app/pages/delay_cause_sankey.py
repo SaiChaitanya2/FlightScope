@@ -58,8 +58,10 @@ STYLES = {
 layout = html.Div(style=STYLES["page_container"], children=[
     dbc.Row([
         dbc.Col([
-            html.H1("Delay Propagation Flow", style=STYLES["main_title"], className="mb-1"),
-            html.P("Analyze how total delayed minutes distribute into specific root causes.", style=STYLES["subtitle"], className="mb-4")
+            html.H1("Delay Propagation Flow", 
+                     style={"color": "#ffffff", "fontWeight": "700", "fontSize": "2.2rem", "letterSpacing": "-0.025em"}, className="mb-1"),
+            html.P("Analyze how total delayed minutes distribute into specific root causes.", 
+                    style={"color": "#64748b", "fontSize": "1rem"}, className="mb-3")
         ], width=12)
     ]),
     

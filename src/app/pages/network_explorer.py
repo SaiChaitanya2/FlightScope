@@ -59,10 +59,10 @@ def get_layout():
 
             # ── Title ──────────────────────────────────────────────
             html.Div([
-                html.H4("✈️ Air Traffic Network Explorer",
-                         style={"margin": "0", "fontWeight": "700", "letterSpacing": "-0.02em"}),
+                html.H1("Air Traffic Network Explorer", 
+                         style={"color": "#ffffff", "fontWeight": "700", "fontSize": "2.2rem", "letterSpacing": "-0.025em"}, className="mb-1"),
                 html.P("Explore hub airports, busy routes, and state-to-state connectivity across the US flight network.",
-                        style={"color": "#64748b", "margin": "2px 0 8px 0", "fontSize": "0.85rem"}),
+                        style={"color": "#64748b", "fontSize": "1rem"}, className="mb-3"),
             ]),
 
             # ── Row 1: Core filters ───────────────────────────────
