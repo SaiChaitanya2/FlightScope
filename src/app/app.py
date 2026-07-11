@@ -31,6 +31,7 @@ app.title = "FlightScope: US Flight Operations & Delay Analytics"
 # Main Layout
 app.layout = html.Div([
     dcc.Location(id="url", refresh=False),
+    dcc.Store(id="global-route-store"),
     
     # Navigation Bar
     dbc.NavbarSimple(
@@ -112,6 +113,6 @@ for module in [network_explorer, delay_heatmap, airline_dashboard, delay_cause_s
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
     print(f"Starting FlightScope Dash server on http://127.0.0.1:{port} ...")
-    app.run(debug=False, port=port)
+    app.run(host="0.0.0.0", debug=True, port=port)
 
 

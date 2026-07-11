@@ -101,7 +101,6 @@ def get_layout():
     airport_options = [{"label": f"{row['faa']} - {row['name']}", "value": row["faa"]} for _, row in airports_df.iterrows()]
     
     return html.Div(style=STYLES["page_container"], children=[
-        # Removed hidden store, we will use the dropdown value instead
         
         # Header Row
         dbc.Row([
@@ -109,118 +108,89 @@ def get_layout():
                 html.H1("Airport Delay Heatmap & Spatial Analytics", style=STYLES["main_title"], className="mb-1"),
                 html.P("Explore geographic delay distribution and temporal congestion patterns across U.S. domestic flights.", style=STYLES["subtitle"]),
             ], width=12)
-        ], className="mb-4 mt-2"),
+        ], className="mb-3 mt-1"),
         
-        # Filters and KPI Stats Row
+        # Horizontal Filters Row
         dbc.Row([
-            # Control Card
             dbc.Col([
-                html.Div(style=STYLES["card"], children=[
-                    html.Div(style=STYLES["card_header"], children=[
-                        html.H5("Filters & Controls", style=STYLES["card_header_text"])
-                    ]),
-                    html.Div(style=STYLES["card_body"], children=[
-                        # Airport Search Dropdown
-                        html.Label("Search Airport", style=STYLES["label"]),
-                        dcc.Dropdown(
-                            id="airport-dropdown",
-                            options=airport_options,
-                            value=None,
-                            placeholder="Select or search airport...",
-                            clearable=True,
-                            searchable=True,
-                            className="mb-3",
-                            style={"color": "#111111"}
-                        ),
-                        
-                        # Metric Dropdown
-                        html.Label("Analysis Metric", style=STYLES["label"]),
-                        dcc.Dropdown(
-                            id="metric-dropdown",
-                            options=[
-                                {"label": "Departure Delay (mins)", "value": "DepDelay"},
-                                {"label": "Arrival Delay (mins)", "value": "ArrDelay"},
-                                {"label": "Taxi-Out Time (mins)", "value": "TaxiOut"},
-                                {"label": "Taxi-In Time (mins)", "value": "TaxiIn"},
-                                {"label": "Cancellation Rate (%)", "value": "Cancelled"},
-                            ],
-                            value="DepDelay",
-                            clearable=False,
-                            className="mb-3",
-                            style={"color": "#111111"}
-                        ),
-                        
-                        # Airline Dropdown
-                        html.Label("Airline Carrier", style=STYLES["label"]),
-                        dcc.Dropdown(
-                            id="airline-dropdown",
-                            options=airline_options,
-                            value="",
-                            clearable=False,
-                            className="mb-3",
-                            style={"color": "#111111"}
-                        ),
-                        
-                        # Season Dropdown
-                        html.Label("Season", style=STYLES["label"]),
-                        dcc.Dropdown(
-                            id="season-dropdown",
-                            options=[
-                                {"label": "All Seasons", "value": ""},
-                                {"label": "Winter (Dec-Feb)", "value": "Winter"},
-                                {"label": "Spring (Mar-May)", "value": "Spring"},
-                                {"label": "Summer (Jun-Aug)", "value": "Summer"},
-                                {"label": "Fall (Sep-Nov)", "value": "Fall"},
-                            ],
-                            value="",
-                            clearable=False,
-                            className="mb-4",
-                            style={"color": "#111111"}
-                        ),
-                        
-                        # Active Selection Indicator
-                        html.Div(id="selection-status-div", className="mb-3", style={"fontSize": "0.9rem"}),
-                        
-                        # Reset Selection Button
-                        dbc.Button(
-                            "Reset All Filters", 
-                            id="reset-airport-btn", 
-                            color="outline-warning", 
-                            size="sm", 
-                            className="w-100 mt-2"
-                        )
-                    ])
-                ])
-            ], xs=12, md=4, lg=3, className="mb-4"),
-            
-            # KPI Cards & Map
+                html.Label("Search Airport", style=STYLES["label"]),
+                dcc.Dropdown(
+                    id="airport-dropdown", options=airport_options, value=None,
+                    placeholder="Select or search...", clearable=True, searchable=True, style={"color": "#111111"}
+                ),
+            ], xs=12, md=3),
             dbc.Col([
+                html.Label("Analysis Metric", style=STYLES["label"]),
+                dcc.Dropdown(
+                    id="metric-dropdown",
+                    options=[
+                        {"label": "Departure Delay", "value": "DepDelay"},
+                        {"label": "Arrival Delay", "value": "ArrDelay"},
+                        {"label": "Taxi-Out Time", "value": "TaxiOut"},
+                        {"label": "Taxi-In Time", "value": "TaxiIn"},
+                        {"label": "Cancellation Rate", "value": "Cancelled"},
+                    ],
+                    value="DepDelay", clearable=False, style={"color": "#111111"}
+                ),
+            ], xs=12, md=3),
+            dbc.Col([
+                html.Label("Airline Carrier", style=STYLES["label"]),
+                dcc.Dropdown(id="airline-dropdown", options=airline_options, value="", clearable=False, style={"color": "#111111"}),
+            ], xs=12, md=3),
+            dbc.Col([
+                html.Label("Season", style=STYLES["label"]),
+                dcc.Dropdown(
+                    id="season-dropdown",
+                    options=[
+                        {"label": "All Seasons", "value": ""},
+                        {"label": "Winter (Dec-Feb)", "value": "Winter"},
+                        {"label": "Spring (Mar-May)", "value": "Spring"},
+                        {"label": "Summer (Jun-Aug)", "value": "Summer"},
+                        {"label": "Fall (Sep-Nov)", "value": "Fall"},
+                    ],
+                    value="", clearable=False, style={"color": "#111111"}
+                ),
+            ], xs=12, md=2),
+            dbc.Col([
+                html.Label("Reset", style=STYLES["label"]),
+                dbc.Button("Reset", id="reset-airport-btn", color="outline-warning", size="sm", className="w-100", style={"height": "36px"})
+            ], xs=12, md=1),
+        ], className="mb-3"),
+        
+        # Main Content Row: Left (KPIs + Map) and Right (Heatmaps)
+        dbc.Row([
+            # LEFT COLUMN: KPIs + Map
+            dbc.Col([
+                # KPI Cards Row
                 dbc.Row([
                     dbc.Col([
                         html.Div(style=STYLES["kpi_card"], children=[
-                            html.Div("Total Flights Represented", style=STYLES["kpi_title"]),
-                            html.H3(id="kpi-total-flights", style={"color": "#3b82f6", "fontWeight": "700", "margin": "0"}),
+                            html.Div("Total Flights", style=STYLES["kpi_title"]),
+                            html.H3(id="kpi-total-flights", style={"color": "#3b82f6", "fontWeight": "700", "margin": "0", "fontSize": "1.3rem"}),
                         ])
-                    ], xs=6, md=3, className="mb-3"),
+                    ], width=3, className="pe-1"),
                     dbc.Col([
                         html.Div(style=STYLES["kpi_card"], children=[
                             html.Div("Avg Dep Delay", style=STYLES["kpi_title"]),
-                            html.H3(id="kpi-avg-dep-delay", style={"color": "#f59e0b", "fontWeight": "700", "margin": "0"}),
+                            html.H3(id="kpi-avg-dep-delay", style={"color": "#f59e0b", "fontWeight": "700", "margin": "0", "fontSize": "1.3rem"}),
                         ])
-                    ], xs=6, md=3, className="mb-3"),
+                    ], width=3, className="px-1"),
                     dbc.Col([
                         html.Div(style=STYLES["kpi_card"], children=[
                             html.Div("Avg Arr Delay", style=STYLES["kpi_title"]),
-                            html.H3(id="kpi-avg-arr-delay", style={"color": "#ec4899", "fontWeight": "700", "margin": "0"}),
+                            html.H3(id="kpi-avg-arr-delay", style={"color": "#ec4899", "fontWeight": "700", "margin": "0", "fontSize": "1.3rem"}),
                         ])
-                    ], xs=6, md=3, className="mb-3"),
+                    ], width=3, className="px-1"),
                     dbc.Col([
                         html.Div(style=STYLES["kpi_card"], children=[
-                            html.Div("Cancellation Rate", style=STYLES["kpi_title"]),
-                            html.H3(id="kpi-cancellation-rate", style={"color": "#ef4444", "fontWeight": "700", "margin": "0"}),
+                            html.Div("Cancel Rate", style=STYLES["kpi_title"]),
+                            html.H3(id="kpi-cancellation-rate", style={"color": "#ef4444", "fontWeight": "700", "margin": "0", "fontSize": "1.3rem"}),
                         ])
-                    ], xs=6, md=3, className="mb-3"),
-                ]),
+                    ], width=3, className="ps-1"),
+                ], className="mb-3"),
+                
+                # Active Selection Indicator
+                html.Div(id="selection-status-div", className="mb-2 text-center", style={"fontSize": "0.9rem", "color": "#94a3b8"}),
                 
                 # Spatial Map Card
                 html.Div(style=STYLES["card"], children=[
@@ -228,7 +198,7 @@ def get_layout():
                         html.H5("U.S. Airport Delay Distribution (Map)", style=STYLES["card_header_text"])
                     ]),
                     html.Div([
-                        dcc.Graph(id="delay-spatial-map", style={"height": "400px"}),
+                        dcc.Graph(id="delay-spatial-map", style={"height": "480px"}),
                         html.Div([
                             html.Label("Time of Day Playback (Hour)", style=STYLES["label"]),
                             dcc.Slider(
@@ -238,28 +208,24 @@ def get_layout():
                                 value=None,
                                 tooltip={"placement": "bottom", "always_visible": False}
                             )
-                        ], style={"padding": "10px", "marginTop": "10px"})
+                        ], style={"padding": "10px", "marginTop": "5px"})
                     ], style={"padding": "10px"})
                 ])
-            ], xs=12, md=8, lg=9, className="mb-4")
-        ], className="mb-2"),
-        
-        # Temporal Heatmaps Row
-        dbc.Row([
-            # Day of Week vs Hour
+            ], xs=12, lg=7, className="mb-4"),
+            
+            # RIGHT COLUMN: Heatmaps
             dbc.Col([
-                html.Div(style=STYLES["card"], children=[
+                # Day of Week vs Hour
+                html.Div(style=STYLES["card"], className="mb-3", children=[
                     html.Div(style=STYLES["card_header"], children=[
                         html.H5("Weekly & Hourly Congestion Grids", style=STYLES["card_header_text"])
                     ]),
                     html.Div([
                         dcc.Graph(id="hourly-weekly-heatmap", style={"height": "320px"})
                     ], style={"padding": "10px"})
-                ])
-            ], xs=12, lg=6, className="mb-4"),
-            
-            # Month vs Day of Month
-            dbc.Col([
+                ]),
+                
+                # Month vs Day of Month
                 html.Div(style=STYLES["card"], children=[
                     html.Div(style=STYLES["card_header"], children=[
                         html.H5("Seasonal & Monthly Calendars", style=STYLES["card_header_text"])
@@ -268,7 +234,7 @@ def get_layout():
                         dcc.Graph(id="monthly-calendar-heatmap", style={"height": "320px"})
                     ], style={"padding": "10px"})
                 ])
-            ], xs=12, lg=6, className="mb-4")
+            ], xs=12, lg=5, className="mb-4")
         ]),
     ])
 
@@ -519,7 +485,7 @@ def update_dashboard(metric, airline, season, selected_airport, hw_click, mc_cli
         y=DAYS_OF_WEEK,
         customdata=hourly_custom,
         colorscale="YlOrRd",
-        colorbar=dict(title=metric_label, tickfont=dict(color="#cbd5e1")),
+        colorbar=dict(title=dict(text=metric_label, side="top", font=dict(size=10)), tickfont=dict(color="#cbd5e1"), thickness=10, len=0.8, xpad=5),
         hovertemplate="Day: %{y}<br>Hour: %{x}<br>Value: %{z:.2f}<br>Flights: %{customdata[0]:,}<br>Cancel Rate: %{customdata[1]:.2f}%<br>Worst Airline: %{customdata[2]}<extra></extra>"
     ))
     
@@ -551,7 +517,7 @@ def update_dashboard(metric, airline, season, selected_airport, hw_click, mc_cli
         y=MONTHS,
         customdata=monthly_custom,
         colorscale="YlOrRd",
-        colorbar=dict(title=metric_label, tickfont=dict(color="#cbd5e1")),
+        colorbar=dict(title=dict(text=metric_label, side="top", font=dict(size=10)), tickfont=dict(color="#cbd5e1"), thickness=10, len=0.8, xpad=5),
         hovertemplate="Month: %{y}<br>Day: %{x}<br>Value: %{z:.2f}<br>Flights: %{customdata[0]:,}<br>Cancel Rate: %{customdata[1]:.2f}%<br>Worst Airline: %{customdata[2]}<extra></extra>"
     ))
     
