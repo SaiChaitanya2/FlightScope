@@ -88,11 +88,11 @@ def create_layout():
                                 included=False,
                                 vertical=True
                             ),
-                            style={"height": "50vh", "paddingLeft": "40%"} 
+                            style={"height": "60vh", "paddingLeft": "15%"} 
                         )
                     ])
                 ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
-            ], width=2),
+            ], width=1),
             
             # MIDDLE COLUMN: UMAP Graph
             dbc.Col([
@@ -114,17 +114,17 @@ def create_layout():
                                 style={"width": "200px", "color": "#111111"}
                             )
                         ], className="d-flex justify-content-between align-items-center mb-3"),
-                        dcc.Graph(id="umap-scatter-plot", style={"height": "65vh"})
+                        dcc.Graph(id="umap-scatter-plot", style={"height": "75vh"})
                     ])
                 ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
-            ], width=5),
+            ], width=6),
             
             # RIGHT COLUMN: Parallel Coordinates Graph
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
                         html.H5("Multivariate Delay Flow", className="mb-3", style={"color": "#ffffff"}),
-                        dcc.Graph(id="parallel-coords-plot", style={"height": "65vh"})
+                        dcc.Graph(id="parallel-coords-plot", style={"height": "75vh"})
                     ])
                 ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
             ], width=5)
@@ -180,8 +180,13 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         if selected_flight_id is not None:
             df.loc[df['flight_id'] == selected_flight_id, 'marker_size'] = 15
 
-        # Cap the congestion scale to saturate the colors
-        custom_range = [0, 25] if color_by == "Origin_Dep_Congestion" else None
+        # Cap scales to saturate the colors and avoid outlier washout
+        if color_by == "Origin_Dep_Congestion":
+            custom_range = [0, 25]
+        elif color_by == "ArrDelay":
+            custom_range = [-15, 90]  # Cap arrival delay between -15m and 90m to reveal structure
+        else:
+            custom_range = None
 
         # 1. Update UMAP Figure
         umap_fig = px.scatter_3d(
@@ -192,6 +197,7 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             hover_data=['Operating_Airline', 'ArrDelay'],
             custom_data=['flight_id'], 
             color_continuous_scale="Plasma",
+            color_discrete_sequence=px.colors.qualitative.Alphabet,
             range_color=custom_range,
             opacity=0.95,
             labels={'Origin_Dep_Congestion': 'Congestion'},
@@ -208,7 +214,7 @@ def update_graphs(selected_month, route_data, color_by, clickData):
                 yaxis=dict(title="UMAP Y", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)"),
                 zaxis=dict(title="UMAP Z", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)")
             ),
-            showlegend=(color_by != "Operating_Airline"),
+            showlegend=(color_by == "Operating_Airline"),
             coloraxis_colorbar=dict(
                 thickness=15,
                 x=0.95, 
@@ -216,12 +222,23 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             )
         )
         
+        # Remove the default white borders around the points that obscure colors in dense clusters
+        umap_fig.update_traces(marker=dict(line=dict(width=0)))
+        
         # 2. Update Parallel Coordinates Figure
         pc_df = df
-        if selected_flight_id is not None:
-            pc_df = df[df['flight_id'] == selected_flight_id]
             
         pc_color = color_by if color_by != "Operating_Airline" else "ArrDelay"
+        
+        if selected_flight_id is not None:
+            pc_df['is_selected'] = (pc_df['flight_id'] == selected_flight_id).astype(float)
+            pc_color = 'is_selected'
+            pc_custom_range = [0, 1]
+        else:
+            pc_custom_range = custom_range
+            if color_by == "Operating_Airline":
+                pc_custom_range = [-15, 90] # Fallback since pc_color is ArrDelay
+            
         pc_df = pc_df.sort_values(by=pc_color, ascending=True)
         
         pc_fig = px.parallel_coordinates(
@@ -229,7 +246,7 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             dimensions=['Distance', 'TaxiOut', 'DepDelay', 'AirTime', 'ArrDelay'],
             color=pc_color,
             color_continuous_scale="Plasma",
-            range_color=custom_range,
+            range_color=pc_custom_range,
             labels={
                 'Origin_Dep_Congestion': 'Congestion',
                 'Distance': 'Dist (mi)',

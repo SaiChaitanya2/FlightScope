@@ -144,9 +144,10 @@ def register_callbacks(app_ignored):
 
 # ── Callback: click → selected airport store ───────────────
 @callback(
-    Output("global-selected-airport-store", "data"),
+    Output("global-selected-airport-store", "data", allow_duplicate=True),
     Input("network-map-graph", "clickData"),
     State("global-selected-airport-store", "data"),
+    prevent_initial_call=True
 )
 def update_selected_airport(clickData, current_selected):
     if clickData:

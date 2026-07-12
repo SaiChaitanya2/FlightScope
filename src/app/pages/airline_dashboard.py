@@ -155,28 +155,10 @@ def register_callbacks(app):
             Output("box_fig", "figure"),
             Output("map_fig", "figure")
         ],
-<<<<<<< HEAD
         [
             Input("airline_dropdown", "value"),
             Input("global-route-store", "data"),
-            Input("global-airport-store", "data")
-=======
-
-        [
-
-            Input("airline_dropdown","value"),
-            Input("global-selected-airport-store", "data"),
-        ]
-
-    )
-
-
-    def update_cards(selected , selected_airport):
-
-
-        temp=df[
-            df["Airline"]==selected
->>>>>>> 01bf1706bdfc01129b4ecfd29b998b7f88847dbd
+            Input("global-selected-airport-store", "data")
         ]
     )
     def update_cards(selected, route_data, global_airport):
@@ -187,18 +169,11 @@ def register_callbacks(app):
             o_airport = route_data.get("origin_airport") if route_data else None
             d_airport = route_data.get("dest_airport") if route_data else None
 
-<<<<<<< HEAD
             where_global, params_global = _build_where_clause(
                 airport=global_airport,
                 origin_state=o_state, dest_state=d_state, 
                 origin_airport=o_airport, dest_airport=d_airport
             )
-=======
-        g_airport = selected_airport.get('airport') if isinstance(selected_airport, dict) else None
-        if g_airport and "Origin" in temp.columns:
-            temp = temp[temp["Origin"] == g_airport]
-
->>>>>>> 01bf1706bdfc01129b4ecfd29b998b7f88847dbd
 
             # Get dynamic maxes across all airlines for this route
             q_maxes = f"""
@@ -254,7 +229,6 @@ def register_callbacks(app):
             o_score = ontime_pct
             c_score = max(0, 100 - (cancel / dyn_max_cancel * 100)) if dyn_max_cancel > 0 else 100
 
-<<<<<<< HEAD
             radar_fig = go.Figure()
             radar_fig.add_trace(go.Scatterpolar(
                 r=[f_score, d_score, o_score, c_score],
@@ -287,10 +261,7 @@ def register_callbacks(app):
                 ranking_fig.update_layout(template="plotly_dark", margin=dict(l=10, r=10, t=40, b=30))
             else:
                 ranking_fig = go.Figure().update_layout(template="plotly_dark", title="No Flight Data")
-=======
-        )
-        ontime=round(
->>>>>>> 01bf1706bdfc01129b4ecfd29b998b7f88847dbd
+
 
             # 5. Box Plot (Limit to top 10 airlines)
             q_box = f"""
@@ -331,29 +302,5 @@ def register_callbacks(app):
 
             return f"{flights:,}", f"{delay} min", f"{ontime_pct}%", f"{cancel}%", radar_fig, duration_fig, ranking_fig, box_fig, map_fig
 
-<<<<<<< HEAD
         finally:
             conn.close()
-=======
-            2
-
-        )
-        cancel=round(
-
-            temp["Cancelled"]
-            .mean()*100,
-
-            2
-        )
-        return (
-
-            f"{flights:,}",
-
-            f"{delay} min",
-
-            f"{100-ontime}%",
-
-            f"{cancel}%"
-
-        )
->>>>>>> 01bf1706bdfc01129b4ecfd29b998b7f88847dbd

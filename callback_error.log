@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "C:\Users\Chait\FlightScope\src\app\pages\high_dim_analytics.py", line 193, in update_graphs
+    umap_fig.update_traces(marker=dict(size=sizes, opacity=opacities))
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\graph_objs\_figure.py", line 188, in update_traces
+    return super().update_traces(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 1388, in update_traces
+    trace.update(patch, overwrite=overwrite, **kwargs)
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 5195, in update
+    BaseFigure._perform_update(self, kwargs, overwrite=overwrite)
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 3971, in _perform_update
+    BaseFigure._perform_update(plotly_obj[key], val)
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 3992, in _perform_update
+    plotly_obj[key] = val
+    ~~~~~~~~~~^^^^^
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 4932, in __setitem__
+    self._set_prop(prop, value)
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 5276, in _set_prop
+    raise err
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\plotly\basedatatypes.py", line 5271, in _set_prop
+    val = validator.validate_coerce(val)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\_plotly_utils\basevalidators.py", line 817, in validate_coerce
+    self.raise_invalid_val(v)
+  File "C:\Users\Chait\AppData\Local\Programs\Python\Python312\Lib\site-packages\_plotly_utils\basevalidators.py", line 312, in raise_invalid_val
+    raise ValueError(
+ValueError: 
+    Invalid value of type 'builtins.list' received for the 'opacity' property of scatter3d.marker
+        Received value: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
+    The 'opacity' property is a number and may be specified as:
+      - An int or float in the interval [0, 1]

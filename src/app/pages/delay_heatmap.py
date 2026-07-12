@@ -209,13 +209,10 @@ def reset_selected_airport(n_clicks):
     
 # Set selected airport on map click
 @callback(
-<<<<<<< HEAD
-    Output("selected-airport-store", "data"),
-=======
-    Output("global-selected-airport-store", "data"),
->>>>>>> 01bf1706bdfc01129b4ecfd29b998b7f88847dbd
+    Output("global-selected-airport-store", "data", allow_duplicate=True),
     Input("delay-spatial-map", "clickData"),
-    State("global-selected-airport-store", "data")
+    State("global-selected-airport-store", "data"),
+    prevent_initial_call=True
 )
 def update_selected_airport(clickData, current_selected):
     if not clickData:
@@ -261,16 +258,12 @@ def update_dashboard(metric, airline, season, selected_airport, hw_click, mc_cli
     selected_airport = selected_airport.get('airport') if isinstance(selected_airport, dict) else selected_airport
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
 
-<<<<<<< HEAD
     # Unpack global cross-page route filters
     o_state = route_data.get("origin_state") if route_data else None
     d_state = route_data.get("dest_state") if route_data else None
     o_airport = route_data.get("origin_airport") if route_data else None
     d_airport = route_data.get("dest_airport") if route_data else None
 
-=======
-    
->>>>>>> 01bf1706bdfc01129b4ecfd29b998b7f88847dbd
     # Enforce mutual exclusion for temporal clicks by only keeping the most recently triggered one
     if triggered_id == "hourly-weekly-heatmap":
         mc_click = None
@@ -531,7 +524,7 @@ layout = get_layout()
 
 @callback(
     Output('airport-dropdown', 'value', allow_duplicate=True),
-    Input('global-airport-store', 'data'),
+    Input('global-selected-airport-store', 'data'),
     prevent_initial_call=True
 )
 def update_heatmap_from_global_store(global_data):
