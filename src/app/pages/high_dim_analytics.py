@@ -183,7 +183,6 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         # Cap the congestion scale to saturate the colors
         custom_range = [0, 25] if color_by == "Origin_Dep_Congestion" else None
 
-        # 1. Update UMAP Figure
         umap_fig = px.scatter_3d(
             df, x='UMAP_1', y='UMAP_2', z='UMAP_3',
             color=color_by,
@@ -197,7 +196,10 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             labels={'Origin_Dep_Congestion': 'Congestion'},
             template="plotly_dark"
         )
-            
+        
+        # Remove white borders on markers that wash out the colors
+        umap_fig.update_traces(marker=dict(line=dict(width=0)))
+        
         umap_fig.update_layout(
             margin=dict(l=0, r=0, t=30, b=40), 
             paper_bgcolor="rgba(0,0,0,0)",
