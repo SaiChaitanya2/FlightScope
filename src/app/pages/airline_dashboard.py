@@ -242,11 +242,19 @@ def register_callbacks(app):
 
             # 3. Duration Histogram
             q_duration_cond = "AND AirTime IS NOT NULL" if where_spec else "WHERE AirTime IS NOT NULL"
-            q_duration = f"SELECT AirTime FROM flights {where_spec} {q_duration_cond} USING SAMPLE 5000"
+            q_duration = f"""
+                SELECT FLOOR(AirTime / 15) * 15 AS AirTimeBin, COUNT(*) AS FlightCount 
+                FROM flights 
+                {where_spec} {q_duration_cond} 
+                GROUP BY AirTimeBin 
+                ORDER BY AirTimeBin
+            """
             df_dur = conn.execute(q_duration, list(params_spec)).df()
             if not df_dur.empty:
-                duration_fig = px.histogram(df_dur, x="AirTime", nbins=30, title="Flight Duration Distribution", color_discrete_sequence=["#eab308"])
-                duration_fig.update_layout(template="plotly_dark", margin=dict(l=20, r=20, t=40, b=20), xaxis_title="Air Time (Mins)", yaxis_title="Count")
+                # Use bar chart since data is already binned
+                duration_fig = px.bar(df_dur, x="AirTimeBin", y="FlightCount", title="Flight Duration Distribution", color_discrete_sequence=["#eab308"])
+                duration_fig.update_traces(marker_line_width=0.5, marker_line_color="#0c0d12")
+                duration_fig.update_layout(template="plotly_dark", margin=dict(l=20, r=20, t=40, b=20), xaxis_title="Air Time (Mins)", yaxis_title="Count", bargap=0)
             else:
                 duration_fig = go.Figure().update_layout(template="plotly_dark", title="No Flight Data")
 
