@@ -7,8 +7,8 @@ STEP 1: Prerequisites & Initial Setup
 =========================================
 1. Ensure you have Python (version 3.8 or higher) installed on your system.
 2. Open a terminal or command prompt.
-3. Navigate to the project root directory (CS661_data):
-   cd path/to/CS661_data
+3. Navigate into the cloned project root directory (e.g., FlightScope or whatever you named the clone):
+   cd FlightScope
 
 4. (Optional but Highly Recommended) Create a virtual environment to avoid dependency conflicts:
    python -m venv .venv
@@ -30,7 +30,7 @@ Because the dataset is very large, it is not included in this repository.
 You will need to download the pre-processed data files to run the dashboard.
 
 1. Create a folder named "processed" inside the "data" directory. The path should be:
-   CS661_data/data/processed/
+   data/processed/
 
 2. Download the pre-processed files from our Google Drive:
    - Link: https://drive.google.com/drive/folders/1Gxms7jueCaMbZjSNk3rzNzUc66H2XH2j?usp=sharing
@@ -40,7 +40,7 @@ You will need to download the pre-processed data files to run the dashboard.
    - `processed_flights_with_umap.parquet` (For High-Dimensional Analytics)
    - `airports.csv` (For airport mapping coordinates)
 
-4. Place all 3 files directly into the `CS661_data/data/processed/` directory.
+4. Place all 3 files directly into the `data/processed/` directory.
 
 
 =========================================
