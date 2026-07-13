@@ -157,6 +157,9 @@ def update_selected_airport(clickData, current_selected):
             if isinstance(faa, list):
                 faa = faa[0]
             if faa:
+                # Toggle off if the same airport is clicked again
+                if faa == current_selected:
+                    return None
                 return faa
         except Exception:
             pass

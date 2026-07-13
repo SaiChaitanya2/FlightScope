@@ -39,6 +39,7 @@ def get_umap_data(month=None, origin_state=None, dest_state=None, origin_airport
 
 def create_layout():
     return dbc.Container([
+        dcc.Store(id="hd-selected-flights-store", data=[]),
         dbc.Row([
             dbc.Col([
                 html.H1("High-Dimensional Analytics", 
@@ -101,18 +102,21 @@ def create_layout():
                         html.Div([
                             html.H5("Delay Clusters (3D UMAP)", className="mb-0", style={"color": "#ffffff"}),
                             # NEW: Color By Dropdown for Interactive recoloring
-                            dcc.Dropdown(
-                                id="color-by-dropdown",
-                                options=[
-                                    {"label": "Airport Congestion", "value": "Origin_Dep_Congestion"},
-                                    {"label": "Arrival Delay", "value": "ArrDelay"},
-                                    {"label": "Distance", "value": "Distance"},
-                                    {"label": "Operating Airline", "value": "Operating_Airline"}
-                                ],
-                                value="Origin_Dep_Congestion",
-                                clearable=False,
-                                style={"width": "200px", "color": "#111111"}
-                            )
+                            html.Div([
+                                dbc.Button("Clear Selection", id="clear-umap-selection", size="sm", className="me-2", outline=True, color="secondary"),
+                                dcc.Dropdown(
+                                    id="color-by-dropdown",
+                                    options=[
+                                        {"label": "Airport Congestion", "value": "Origin_Dep_Congestion"},
+                                        {"label": "Arrival Delay", "value": "ArrDelay"},
+                                        {"label": "Distance", "value": "Distance"},
+                                        {"label": "Operating Airline", "value": "Operating_Airline"}
+                                    ],
+                                    value="Origin_Dep_Congestion",
+                                    clearable=False,
+                                    style={"width": "200px", "color": "#111111"}
+                                )
+                            ], className="d-flex align-items-center")
                         ], className="d-flex justify-content-between align-items-center mb-3"),
                         dcc.Graph(id="umap-scatter-plot", style={"height": "75vh"})
                     ])
@@ -147,10 +151,10 @@ layout = create_layout()
         Input("month-slider", "value"),
         Input("global-route-store", "data"),
         Input("color-by-dropdown", "value"),
-        Input("umap-scatter-plot", "clickData")
+        Input("hd-selected-flights-store", "data")
     ]
 )
-def update_graphs(selected_month, route_data, color_by, clickData):
+def update_graphs(selected_month, route_data, color_by, selected_flight_ids):
     try:
         route_data = route_data or {}
         origin_state = route_data.get("origin_state", "")
@@ -170,20 +174,15 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         kpi_taxi = f"{df['TaxiOut'].mean():.1f}m"
         kpi_max = f"{df['ArrDelay'].max():.0f}m"
 
-        selected_flight_id = None
-        if clickData and "points" in clickData and len(clickData["points"]) > 0:
-            point = clickData["points"][0]
-            if "customdata" in point:
-                selected_flight_id = point["customdata"][0]
-
         df['marker_size'] = 4
-        if selected_flight_id is not None:
-            df.loc[df['flight_id'] == selected_flight_id, 'marker_size'] = 15
+        if selected_flight_ids:
+            df.loc[df['flight_id'].isin(selected_flight_ids), 'marker_size'] = 15
 
         # Cap scales to saturate the colors and avoid outlier washout
         if color_by == "Origin_Dep_Congestion":
             custom_range = [0, 25]
         elif color_by == "ArrDelay":
+            df["ArrDelay"] = df["ArrDelay"].fillna(0)
             custom_range = [-15, 90]  # Cap arrival delay between -15m and 90m to reveal structure
         else:
             custom_range = None
@@ -199,12 +198,13 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             color_continuous_scale="Plasma",
             color_discrete_sequence=px.colors.qualitative.Alphabet,
             range_color=custom_range,
-            opacity=0.95,
+            opacity=1.0,
             labels={'Origin_Dep_Congestion': 'Congestion'},
             template="plotly_dark"
         )
             
         umap_fig.update_layout(
+            uirevision="constant",
             margin=dict(l=0, r=0, t=30, b=40), 
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
@@ -230,8 +230,8 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             
         pc_color = color_by if color_by != "Operating_Airline" else "ArrDelay"
         
-        if selected_flight_id is not None:
-            pc_df['is_selected'] = (pc_df['flight_id'] == selected_flight_id).astype(float)
+        if selected_flight_ids:
+            pc_df['is_selected'] = pc_df['flight_id'].isin(selected_flight_ids).astype(float)
             pc_color = 'is_selected'
             pc_custom_range = [0, 1]
         else:
@@ -276,3 +276,35 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         with open("C:/Users/Chait/FlightScope/callback_error.log", "w") as f:
             f.write(traceback.format_exc())
         raise e
+
+@callback(
+    Output("hd-selected-flights-store", "data"),
+    [
+        Input("umap-scatter-plot", "selectedData"),
+        Input("umap-scatter-plot", "clickData"),
+        Input("clear-umap-selection", "n_clicks")
+    ],
+    prevent_initial_call=True
+)
+def update_store(selectedData, clickData, n_clicks):
+    import dash
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
+        
+    trigger_id = ctx.triggered[0]["prop_id"]
+    
+    if "clear-umap-selection" in trigger_id:
+        return []
+        
+    if "selectedData" in trigger_id and selectedData and "points" in selectedData:
+        if len(selectedData["points"]) > 0:
+            return [p["customdata"][0] for p in selectedData["points"] if "customdata" in p]
+        return dash.no_update
+        
+    if "clickData" in trigger_id and clickData and "points" in clickData and len(clickData["points"]) > 0:
+        point = clickData["points"][0]
+        if "customdata" in point:
+            return [point["customdata"][0]]
+            
+    return dash.no_update
