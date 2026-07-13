@@ -285,7 +285,8 @@ def register_callbacks(app):
                 bgcolor="#1e293b",
                 font_size=14,
                 font_family="Inter, sans-serif",
-                bordercolor="#334155"
+                bordercolor="#334155",
+                font=dict(color="#ffffff")
             )
         )
         
