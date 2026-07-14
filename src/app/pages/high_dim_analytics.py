@@ -38,14 +38,16 @@ def get_umap_data(month=None, origin_state=None, dest_state=None, origin_airport
     return df
 
 def create_layout():
-    return html.Div(
-        className="premium-page-container",
-        children=[
-            # ── Title ──────────────────────────────────────────────
-            html.Div([
-                html.H1("High-Dimensional Analytics", className="premium-title"),
-                html.P("Exploring complex delay topologies using UMAP and Parallel Coordinates.", className="premium-subtitle"),
-            ], className="mb-3 mt-1"),
+    return dbc.Container([
+        dcc.Store(id="hd-selected-flights-store", data=[]),
+        dbc.Row([
+            dbc.Col([
+                html.H1("High-Dimensional Analytics", 
+                         style={"color": "#ffffff", "fontWeight": "700", "fontSize": "2.2rem", "letterSpacing": "-0.025em"}, className="mb-1"),
+                html.P("Exploring complex delay topologies using UMAP and Parallel Coordinates.", 
+                        style={"color": "#64748b", "fontSize": "1rem"}, className="mb-3"),
+            ], width=12)
+        ], className="mb-3 mt-1"),
         
         # NEW: KPI Cards Row
         # NEW: Compact KPI Bar
@@ -87,11 +89,11 @@ def create_layout():
                                 included=False,
                                 vertical=True
                             ),
-                            style={"height": "50vh", "paddingLeft": "40%"} 
+                            style={"height": "60vh", "paddingLeft": "15%"} 
                         )
                     ])
                 ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
-            ], width=2),
+            ], width=1),
             
             # MIDDLE COLUMN: UMAP Graph
             dbc.Col([
@@ -100,37 +102,40 @@ def create_layout():
                         html.Div([
                             html.H5("Delay Clusters (3D UMAP)", className="mb-0", style={"color": "#ffffff"}),
                             # NEW: Color By Dropdown for Interactive recoloring
-                            dcc.Dropdown(
-                                id="color-by-dropdown",
-                                options=[
-                                    {"label": "Airport Congestion", "value": "Origin_Dep_Congestion"},
-                                    {"label": "Arrival Delay", "value": "ArrDelay"},
-                                    {"label": "Distance", "value": "Distance"},
-                                    {"label": "Operating Airline", "value": "Operating_Airline"}
-                                ],
-                                value="Origin_Dep_Congestion",
-                                clearable=False,
-                                style={"width": "200px", "color": "#111111"}
-                            )
+                            html.Div([
+                                dbc.Button("Clear Selection", id="clear-umap-selection", size="sm", className="me-2", outline=True, color="secondary"),
+                                dcc.Dropdown(
+                                    id="color-by-dropdown",
+                                    options=[
+                                        {"label": "Airport Congestion", "value": "Origin_Dep_Congestion"},
+                                        {"label": "Arrival Delay", "value": "ArrDelay"},
+                                        {"label": "Distance", "value": "Distance"},
+                                        {"label": "Operating Airline", "value": "Operating_Airline"}
+                                    ],
+                                    value="Origin_Dep_Congestion",
+                                    clearable=False,
+                                    style={"width": "200px", "color": "#111111"}
+                                )
+                            ], className="d-flex align-items-center")
                         ], className="d-flex justify-content-between align-items-center mb-3"),
-                        dcc.Graph(id="umap-scatter-plot", style={"height": "65vh"})
+                        dcc.Graph(id="umap-scatter-plot", style={"height": "75vh"})
                     ])
-                ], className="premium-card h-100")
-            ], width=5),
+                ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
+            ], width=6),
             
             # RIGHT COLUMN: Parallel Coordinates Graph
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
                         html.H5("Multivariate Delay Flow", className="mb-3", style={"color": "#ffffff"}),
-                        dcc.Graph(id="parallel-coords-plot", style={"height": "65vh"})
+                        dcc.Graph(id="parallel-coords-plot", style={"height": "75vh"})
                     ])
-                ], className="premium-card h-100")
+                ], className="shadow-sm border-0 h-100", style={"backgroundColor": "#151722"})
             ], width=5)
             
         ], className="mb-4 align-items-stretch") 
         
-    ])
+    ], fluid=True, id="aditi-view-container", style={"backgroundColor": "#0c0d12", "minHeight": "100vh", "padding": "20px"})
 
 layout = create_layout()
 @callback(
@@ -146,10 +151,10 @@ layout = create_layout()
         Input("month-slider", "value"),
         Input("global-route-store", "data"),
         Input("color-by-dropdown", "value"),
-        Input("umap-scatter-plot", "clickData")
+        Input("hd-selected-flights-store", "data")
     ]
 )
-def update_graphs(selected_month, route_data, color_by, clickData):
+def update_graphs(selected_month, route_data, color_by, selected_flight_ids):
     try:
         route_data = route_data or {}
         origin_state = route_data.get("origin_state", "")
@@ -169,19 +174,20 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         kpi_taxi = f"{df['TaxiOut'].mean():.1f}m"
         kpi_max = f"{df['ArrDelay'].max():.0f}m"
 
-        selected_flight_id = None
-        if clickData and "points" in clickData and len(clickData["points"]) > 0:
-            point = clickData["points"][0]
-            if "customdata" in point:
-                selected_flight_id = point["customdata"][0]
-
         df['marker_size'] = 4
-        if selected_flight_id is not None:
-            df.loc[df['flight_id'] == selected_flight_id, 'marker_size'] = 15
+        if selected_flight_ids:
+            df.loc[df['flight_id'].isin(selected_flight_ids), 'marker_size'] = 15
 
-        # Cap the congestion scale to saturate the colors
-        custom_range = [0, 25] if color_by == "Origin_Dep_Congestion" else None
+        # Cap scales to saturate the colors and avoid outlier washout
+        if color_by == "Origin_Dep_Congestion":
+            custom_range = [0, 25]
+        elif color_by == "ArrDelay":
+            df["ArrDelay"] = df["ArrDelay"].fillna(0)
+            custom_range = [-15, 90]  # Cap arrival delay between -15m and 90m to reveal structure
+        else:
+            custom_range = None
 
+        # 1. Update UMAP Figure
         umap_fig = px.scatter_3d(
             df, x='UMAP_1', y='UMAP_2', z='UMAP_3',
             color=color_by,
@@ -190,16 +196,15 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             hover_data=['Operating_Airline', 'ArrDelay'],
             custom_data=['flight_id'], 
             color_continuous_scale="Plasma",
+            color_discrete_sequence=px.colors.qualitative.Alphabet,
             range_color=custom_range,
-            opacity=0.95,
+            opacity=1.0,
             labels={'Origin_Dep_Congestion': 'Congestion'},
             template="plotly_dark"
         )
-        
-        # Remove white borders on markers that wash out the colors
-        umap_fig.update_traces(marker=dict(line=dict(width=0)))
-        
+            
         umap_fig.update_layout(
+            uirevision="constant",
             margin=dict(l=0, r=0, t=30, b=40), 
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
@@ -209,7 +214,7 @@ def update_graphs(selected_month, route_data, color_by, clickData):
                 yaxis=dict(title="UMAP Y", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)"),
                 zaxis=dict(title="UMAP Z", gridcolor="#475569", backgroundcolor="rgba(0,0,0,0)")
             ),
-            showlegend=(color_by != "Operating_Airline"),
+            showlegend=(color_by == "Operating_Airline"),
             coloraxis_colorbar=dict(
                 thickness=15,
                 x=0.95, 
@@ -217,12 +222,23 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             )
         )
         
+        # Remove the default white borders around the points that obscure colors in dense clusters
+        umap_fig.update_traces(marker=dict(line=dict(width=0)))
+        
         # 2. Update Parallel Coordinates Figure
         pc_df = df
-        if selected_flight_id is not None:
-            pc_df = df[df['flight_id'] == selected_flight_id]
             
         pc_color = color_by if color_by != "Operating_Airline" else "ArrDelay"
+        
+        if selected_flight_ids:
+            pc_df['is_selected'] = pc_df['flight_id'].isin(selected_flight_ids).astype(float)
+            pc_color = 'is_selected'
+            pc_custom_range = [0, 1]
+        else:
+            pc_custom_range = custom_range
+            if color_by == "Operating_Airline":
+                pc_custom_range = [-15, 90] # Fallback since pc_color is ArrDelay
+            
         pc_df = pc_df.sort_values(by=pc_color, ascending=True)
         
         pc_fig = px.parallel_coordinates(
@@ -230,7 +246,7 @@ def update_graphs(selected_month, route_data, color_by, clickData):
             dimensions=['Distance', 'TaxiOut', 'DepDelay', 'AirTime', 'ArrDelay'],
             color=pc_color,
             color_continuous_scale="Plasma",
-            range_color=custom_range,
+            range_color=pc_custom_range,
             labels={
                 'Origin_Dep_Congestion': 'Congestion',
                 'Distance': 'Dist (mi)',
@@ -260,3 +276,35 @@ def update_graphs(selected_month, route_data, color_by, clickData):
         with open("C:/Users/Chait/FlightScope/callback_error.log", "w") as f:
             f.write(traceback.format_exc())
         raise e
+
+@callback(
+    Output("hd-selected-flights-store", "data"),
+    [
+        Input("umap-scatter-plot", "selectedData"),
+        Input("umap-scatter-plot", "clickData"),
+        Input("clear-umap-selection", "n_clicks")
+    ],
+    prevent_initial_call=True
+)
+def update_store(selectedData, clickData, n_clicks):
+    import dash
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
+        
+    trigger_id = ctx.triggered[0]["prop_id"]
+    
+    if "clear-umap-selection" in trigger_id:
+        return []
+        
+    if "selectedData" in trigger_id and selectedData and "points" in selectedData:
+        if len(selectedData["points"]) > 0:
+            return [p["customdata"][0] for p in selectedData["points"] if "customdata" in p]
+        return dash.no_update
+        
+    if "clickData" in trigger_id and clickData and "points" in clickData and len(clickData["points"]) > 0:
+        point = clickData["points"][0]
+        if "customdata" in point:
+            return [point["customdata"][0]]
+            
+    return dash.no_update

@@ -10,7 +10,7 @@ from src.app.db import get_delay_causes, get_airlines
 layout = html.Div(className="premium-page-container", children=[
     dbc.Row([
         dbc.Col([
-            html.H1("Delay Propagation Flow", className="premium-title"),
+            html.H1("Flight Delay Causes Breakdown", className="premium-title"),
             html.P("Analyze how total delayed minutes distribute into specific root causes.", className="premium-subtitle")
         ], width=12)
     ]),
@@ -63,17 +63,7 @@ layout = html.Div(className="premium-page-container", children=[
                         },
                         className="mb-4"
                     ),
-                    html.Label("Specific Date (Overrides Season/Month)", className="premium-label"),
-                    html.Div([
-                        dcc.DatePickerSingle(
-                            id='sankey-date-filter',
-                            min_date_allowed='2018-01-01',
-                            max_date_allowed='2022-12-31',
-                            initial_visible_month='2022-01-01',
-                            placeholder='Select a Date',
-                            style={"backgroundColor": "transparent"}
-                        )
-                    ], className="mb-4"),
+
                     html.Hr(style={"borderColor": "#242938"}),
                     html.Small(
                         "Hover over the nodes and flows to see the exact number of delayed minutes attributed to each root cause.", 
@@ -115,11 +105,10 @@ def register_callbacks(app):
         [Input("sankey-airline-filter", "value"),
          Input("sankey-season-filter", "value"),
          Input("sankey-month-filter", "value"),
-         Input("sankey-date-filter", "date"),
          Input("global-route-store", "data"),
          Input("global-selected-airport-store", "data")]
     )
-    def update_sankey(airline, season, month, date, route_data, selected_airport):
+    def update_sankey(airline, season, month, route_data, selected_airport):
         al = None if airline == "ALL" else airline
         
         # Unpack global filters
@@ -131,16 +120,12 @@ def register_callbacks(app):
         if g_airport:
            o_airport = g_airport
         
-        # If a specific date is selected, ignore the Season and Month filters
-        if date:
-            sn = None
-            mn = None
-        else:
-            sn = None if season == "ALL" else season
-            mn = None if month == 0 else month
+        sn = None if season == "ALL" else season
+        mn = None if month == 0 else month
         
         causes = get_delay_causes(
-            airline=al, season=sn, month=mn, date=date,
+            airport=g_airport,
+            airline=al, season=sn, month=mn,
             origin_state=o_state, dest_state=d_state,
             origin_airport=o_airport, dest_airport=d_airport
         )
@@ -284,7 +269,8 @@ def register_callbacks(app):
                 bgcolor="#1e293b",
                 font_size=14,
                 font_family="Inter, sans-serif",
-                bordercolor="#334155"
+                bordercolor="#334155",
+                font=dict(color="#ffffff")
             )
         )
         
