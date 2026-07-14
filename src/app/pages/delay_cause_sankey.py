@@ -10,7 +10,7 @@ from src.app.db import get_delay_causes, get_airlines
 layout = html.Div(className="premium-page-container", children=[
     dbc.Row([
         dbc.Col([
-            html.H1("Delay Propagation Flow", className="premium-title"),
+            html.H1("Flight Delay Causes Breakdown", className="premium-title"),
             html.P("Analyze how total delayed minutes distribute into specific root causes.", className="premium-subtitle")
         ], width=12)
     ]),
